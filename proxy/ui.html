@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pl">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Agent AI – UI (serwowane przez proxy)</title>
+<style>
+  :root { --bg:#0b1020; --fg:#eef; --panel:#11183a; --border:#2b3463; }
+  *{box-sizing:border-box}
+  body{font-family:system-ui;margin:0;background:var(--bg);color:var(--fg)}
+  .wrap{max-width:720px;margin:40px auto;padding:16px}
+  .log{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:12px;height:360px;overflow:auto}
+  .row{margin:.4rem 0}
+  .row.me{color:#9fd}
+  form{display:flex;gap:8px;margin-top:12px}
+  input{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0f1540;color:var(--fg)}
+  button{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#1b255a;color:#eef;cursor:pointer}
+</style>
+<div class="wrap">
+  <h1>Agent AI (UI w iframe)</h1>
+  <div id="log" class="log" aria-live="polite"></div>
+  <form id="f" autocomplete="off">
+    <input id="q" placeholder="Zadaj pytanie..." />
+    <button>Wyślij</button>
+  </form>
+</div>
+<script>
+const log = document.getElementById('log');
+const add = (t,c='') => { const d=document.createElement('div'); d.className='row '+c; d.textContent=t; log.appendChild(d); log.scrollTop=log.scrollHeight; };
+
+document.getElementById('f').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const q = document.getElementById('q').value.trim(); if(!q) return;
+  add('Ty: '+q,'me'); document.getElementById('q').value='';
+  try{
+    const r = await fetch('/agent/api/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({q})
+    });
+    const data = await r.json();
+    if(!r.ok) { add('Błąd: ' + (data.error || r.status)); return; }
+    add('Agent: ' + (data.answer || '...'));
+  }catch(err){
+    add('Błąd sieci: ' + err);
+  }
+});
+</script>
+</html>

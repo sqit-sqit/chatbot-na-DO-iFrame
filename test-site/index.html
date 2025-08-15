@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pl">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Test – Agent AI (Private + iframe)</title>
+<style>
+  :root { --bg:#0b1020; --fg:#eef; --panel:#11183a; --border:#2b3463; }
+  *{box-sizing:border-box}
+  body{font-family:system-ui;margin:0;background:var(--bg);color:var(--fg)}
+  .wrap{max-width:980px;margin:40px auto;padding:16px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
+  iframe{width:100%;height:75vh;border:1px solid var(--border);border-radius:12px;background:#fff}
+</style>
+<div class="wrap">
+  <h1>Test – osadzony agent AI (iframe)</h1>
+  <p class="card">Poniżej osadzamy <code>/agent/ui</code>, czyli interfejs serwowany przez backend proxy.
+    Proxy łączy się z prywatnym Agentem DO przez <em>Agent Access Key</em>.
+  </p>
+  <iframe src="/agent/ui" title="Agent AI"></iframe>
+</div>
+</html>

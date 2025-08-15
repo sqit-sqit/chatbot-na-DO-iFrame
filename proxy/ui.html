@@ -2,7 +2,7 @@
 <html lang="pl">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Agent AI – UI (serwowane przez proxy)</title>
+<title>Witaj, tu NoterAI, chcesz mnie o coś zapytać?</title>
 <style>
   :root { --bg:#0b1020; --fg:#eef; --panel:#11183a; --border:#2b3463; }
   *{box-sizing:border-box}
@@ -14,14 +14,16 @@
   form{display:flex;gap:8px;margin-top:12px}
   input{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0f1540;color:var(--fg)}
   button{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#1b255a;color:#eef;cursor:pointer}
+  .small{opacity:.8;font-size:.9rem}
 </style>
 <div class="wrap">
-  <h1>Agent AI (UI w iframe)</h1>
+  <h1>Agent AI (SSE streaming)</h1>
   <div id="log" class="log" aria-live="polite"></div>
   <form id="f" autocomplete="off">
     <input id="q" placeholder="Zadaj pytanie..." />
-    <button>Wyślij</button>
+    <button>Wyślij (SSE)</button>
   </form>
+  <p class="small">Jeśli backend nie wspiera SSE, można wrócić do POST <code>/agent/api/chat</code>.</p>
 </div>
 <script>
 const log = document.getElementById('log');
@@ -31,18 +33,18 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const q = document.getElementById('q').value.trim(); if(!q) return;
   add('Ty: '+q,'me'); document.getElementById('q').value='';
-  try{
-    const r = await fetch('/agent/api/chat', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({q})
-    });
-    const data = await r.json();
-    if(!r.ok) { add('Błąd: ' + (data.error || r.status)); return; }
-    add('Agent: ' + (data.answer || '...'));
-  }catch(err){
-    add('Błąd sieci: ' + err);
-  }
+
+  // SSE: strumień z backendu (po stronie publicznej to /agent/api/stream)
+  const url = '/agent/api/stream?q=' + encodeURIComponent(q);
+  const row = document.createElement('div'); row.className='row'; row.textContent='Agent: '; log.appendChild(row);
+
+  const es = new EventSource(url);
+  es.onmessage = (ev) => {
+    if (ev.data === "[DONE]") { es.close(); return; }
+    row.textContent += ev.data;
+    log.scrollTop = log.scrollHeight;
+  };
+  es.onerror = () => { es.close(); add('Błąd streamingu (SSE).'); };
 });
 </script>
 </html>
